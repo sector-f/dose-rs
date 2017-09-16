@@ -1,0 +1,6 @@
+[workspace]
+members = [
+	"dose",
+	"dose-types",
+	"dose-client"
+]
