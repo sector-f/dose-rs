@@ -16,7 +16,6 @@ struct Dl {
     status: DlStatus,
     bytes_read: u64,
     bytes_total: u64,
-    tx: Arc<Mutex<Sender<Interrupt>>>,
 }
 
 pub struct DlServer {
@@ -34,6 +33,3 @@ impl DlServer {
         unimplemented!();
     }
 }
-
-#[derive(Copy, Clone)]
-struct Interrupt;

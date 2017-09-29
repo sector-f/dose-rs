@@ -1,10 +1,10 @@
 #[macro_use] extern crate serde_derive;
 
-use std::path::Path;
+use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize)]
-pub enum Request<'a> {
-    Add { url: &'a str, path: &'a Path },
+pub enum Request {
+    Add { url: String, path: PathBuf },
     Cancel { id: usize },
     Remove { id: usize },
     DlStatus { id: usize },
@@ -12,10 +12,10 @@ pub enum Request<'a> {
 }
 
 #[derive(Serialize, Deserialize)]
-pub enum Response<'a> {
-    DlStatus(DlResponse<'a>),
-    ServerStatus(Vec<DlResponse<'a>>),
-    Error(&'a str),
+pub enum Response {
+    DlStatus(DlResponse),
+    ServerStatus(Vec<DlResponse>),
+    Error(String),
 }
 
 #[derive(Serialize, Deserialize)]
@@ -26,10 +26,10 @@ pub enum DlStatus {
     Failed,
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy)]
-pub struct DlResponse<'a> {
+#[derive(Serialize, Deserialize, Clone)]
+pub struct DlResponse {
     pub id: usize,
-    pub url: &'a str,
-    pub path: &'a Path,
+    pub url: String,
+    pub path: PathBuf,
     pub percent: f32,
 }
