@@ -1,6 +1,6 @@
 [workspace]
 members = [
-	"dose",
+	"dose-server",
+	"dose-client",
 	"dose-types",
-	"dose-client"
 ]
