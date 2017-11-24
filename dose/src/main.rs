@@ -7,19 +7,19 @@ extern crate tokio_core;
 use tokio_core::reactor::Core;
 
 extern crate tokio_io;
-use tokio_io::{io, AsyncRead};
+use tokio_io::{io, AsyncRead, AsyncWrite};
 
 extern crate tokio_uds;
 use tokio_uds::{UnixListener, UnixStream};
 
 extern crate futures;
-use futures::{Future, Stream};
+use futures::prelude::*;
 
 extern crate libc;
 use libc::{umask, mode_t};
 
 use std::path::PathBuf;
-use std::io::{Read, Write};
+use std::io::{BufReader, Read, Write};
 use std::process::exit;
 use std::net::Shutdown;
 use std::thread::spawn;
@@ -34,6 +34,8 @@ mod server;
 use server::DlServer;
 
 fn main() {
+    let version = concat!("dose ", env!("CARGO_PKG_VERSION"), "\n");
+
     let mut core = match Core::new() {
         Ok(core) => core,
         Err(e) => {
@@ -56,13 +58,26 @@ fn main() {
 
     let server = Rc::new(RefCell::new(DlServer::new()));
 
-    let connections = socket.incoming().for_each(|(stream, _addr)| {
-        let server = server.clone();
+    core.run({
+        socket.incoming().for_each(|(stream, _addr)| {
+            let server = server.clone();
 
-        handle.spawn({
-            let (reader, writer) = stream.split();
+            handle.spawn({
+                let (reader, writer) = stream.split();
 
-            io::copy(reader, writer).then(|_| Ok(()))
+                let bufreader = BufReader::new(reader);
+
+                io::write_all(writer, version);
+                // Should these be chained with then() ?
+                io::lines(bufreader).for_each(|line| {
+                    // Do stuff
+                });
+            });
+
+            Ok(())
+        })
+    });
+}
 
             // io::read_to_end(reader, Vec::new())
             // .map(|(_reader, buffer)| {
@@ -100,30 +115,3 @@ fn main() {
             //     io::write_all(writer, serde_json::to_string(&response).unwrap());
             //     Ok(())
             // })
-        });
-
-        Ok(())
-    });
-
-    // let _ = core.run(connections);
-}
-
-// fn run(stream: &mut UnixStream, server: &mut DlServer) {
-//     let mut buf = String::new();
-//     let _ = stream.read_to_string(&mut buf);
-
-//     let mut json_response: String;
-//     match serde_json::from_str::<Request>(&buf) {
-//         Ok(req) => {
-//             let response = server.process(req);
-//             json_response = serde_json::to_string(&response).unwrap();
-//         },
-//         Err(e) => {
-//             let msg = e.to_string();
-//             let response = Response::Error(&msg);
-//             json_response = serde_json::to_string(&response).unwrap();
-//         },
-//     }
-
-//     let _ = stream.write_all(json_response.as_bytes());
-// }

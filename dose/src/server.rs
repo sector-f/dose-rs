@@ -1,10 +1,12 @@
+use futures::prelude::*;
+
 use serde_json;
 use url::Url;
 use dose_types::*;
 
 use std::sync::{Arc, Mutex, RwLock};
 use std::sync::mpsc::{channel, Sender, Receiver};
-use std::io::{Read, Write};
+use std::io::{self, Read, Write};
 use std::os::unix::net::UnixListener;
 use std::net::Shutdown;
 use std::path::PathBuf;
@@ -29,7 +31,7 @@ impl DlServer {
         }
     }
 
-    pub fn process(&mut self, req: Request) -> Response {
-        unimplemented!();
+    pub fn eval_request(&mut self, req: Request) -> Box<Future<Item = Response, Error = Response>> {
+        unimplemented!()
     }
 }
