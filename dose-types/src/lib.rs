@@ -31,5 +31,6 @@ pub struct DlResponse {
     pub id: usize,
     pub url: String,
     pub path: PathBuf,
-    pub percent: f32,
+    pub bytes_read: u64,
+    pub bytes_total: u64,
 }
