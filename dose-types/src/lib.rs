@@ -32,5 +32,5 @@ pub struct DlResponse {
     pub url: String,
     pub path: PathBuf,
     pub bytes_read: u64,
-    pub bytes_total: u64,
+    pub bytes_total: Option<u64>,
 }

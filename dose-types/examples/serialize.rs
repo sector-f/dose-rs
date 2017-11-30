@@ -3,12 +3,12 @@ extern crate serde_json;
 extern crate dose_types;
 use dose_types::*;
 
-use std::path::Path;
+use std::path::PathBuf;
 
 fn main() {
     // Requests
 
-    let add_request = Request::Add { url: "http://www.example.com", path: Path::new("/path/to/file") };
+    let add_request = Request::Add { url: String::from("http://www.example.com"), path: PathBuf::from("/path/to/file") };
     println!("Add request:\n{}\n", serde_json::to_string(&add_request).unwrap());
 
     let cancel_request = Request::Cancel { id: 0 };
@@ -24,24 +24,26 @@ fn main() {
 
     let dlr1 = DlResponse {
         id: 0,
-        url: "http://www.example.com/foo.jpg",
-        path: Path::new("/path/to/foo.jpg"),
-        percent: 30.2,
+        url: String::from("http://www.example.com/foo.jpg"),
+        path: PathBuf::from("/path/to/foo.jpg"),
+        bytes_read: 510,
+        bytes_total: Some(1024),
     };
 
     let dlr2 = DlResponse {
         id: 1,
-        url: "http://www.example.com/bar.jpg",
-        path: Path::new("/path/to/bar.jpg"),
-        percent: 65.1,
+        url: String::from("http://www.example.com/bar.jpg"),
+        path: PathBuf::from("/path/to/bar.jpg"),
+        bytes_read: 5,
+        bytes_total: Some(10000),
     };
 
-    let status_response = Response::DlStatus(dlr1);
+    let status_response = Response::DlStatus(dlr1.clone());
     println!("Download status response:\n{}\n", serde_json::to_string(&status_response).unwrap());
 
     let server_status = Response::ServerStatus(vec![dlr1, dlr2]);
     println!("Server status response:\n{}\n", serde_json::to_string(&server_status).unwrap());
 
-    let error = Response::Error("404 file not found");
+    let error = Response::Error(String::from("404 file not found"));
     println!("Error response:\n{}", serde_json::to_string(&error).unwrap());
 }
