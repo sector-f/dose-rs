@@ -16,6 +16,7 @@ use tokio_uds::{UnixListener, UnixStream};
 extern crate futures;
 use futures::prelude::*;
 use futures::future;
+use futures::stream;
 
 extern crate libc;
 use libc::{umask, mode_t};
@@ -36,7 +37,8 @@ mod server;
 use server::DlServer;
 
 fn main() {
-    let version = concat!("dose ", env!("CARGO_PKG_VERSION"), "\n");
+    // let version = format!("dose {}", env!("CARGO_PKG_VERSION"));
+    let version = concat!("dose ", env!("CARGO_PKG_VERSION"));
 
     let mut core = match Core::new() {
         Ok(core) => core,
@@ -64,28 +66,22 @@ fn main() {
         socket.incoming().for_each(move |(connection, _addr)| {
             handle.spawn({
                 let server = server.clone();
-                let (reader, writer) = connection.split();
+                let lines = connection.framed(LinesCodec::new());
+                let (writer, reader) = lines.split();
 
-                io::write_all(writer, version)
-                .and_then(move |(writer, _)| {
-                    io::lines(BufReader::new(reader))
-                    .fold(writer, move |writer, line| {
-                        let response = match serde_json::from_str(&line) {
-                            Ok(r) => {
-                                server.borrow_mut().eval_request(r)
-                            },
-                            Err(e) => {
-                                Response::Error(format!("{}", e))
-                            }
-                        };
-                        let writer = io::write_all(writer, serde_json::to_string(&response).unwrap())
-                            .map(|(writer, _)| writer);
+                let version_stream = stream::once::<_, _>(Ok(version.to_owned()));
+                let reply_stream = reader.map(move |line| {
+                    match serde_json::from_str(&line) {
+                        Ok(r) => {
+                            serde_json::to_string(&server.borrow_mut().eval_request(r)).unwrap()
+                        },
+                        Err(e) => {
+                            serde_json::to_string(&Response::Error(format!("{}", e))).unwrap()
+                        }
+                    }
+                });
 
-                        writer
-                    })
-                    .map(|_| ())
-                })
-                .map_err(|_| ())
+                version_stream.chain(reply_stream).forward(writer).and_then(|_| Ok(())).map_err(|_| ())
             });
 
             Ok(())
