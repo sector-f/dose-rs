@@ -35,6 +35,11 @@ impl DlServer {
     }
 
     pub fn eval_request(&mut self, req: Request) -> Response {
-        Response::Error("Unimplemented".to_string())
+        match req {
+            Request::Add { url, path } => {
+                unimplemented!()
+            },
+            _ => Response::Error("Unimplemented".to_string()),
+        }
     }
 }

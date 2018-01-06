@@ -37,7 +37,6 @@ mod server;
 use server::DlServer;
 
 fn main() {
-    // let version = format!("dose {}", env!("CARGO_PKG_VERSION"));
     let version = concat!("dose ", env!("CARGO_PKG_VERSION"));
 
     let mut core = match Core::new() {
@@ -62,30 +61,30 @@ fn main() {
     let server = Rc::new(RefCell::new(DlServer::new(core.handle())));
     let handle = core.handle();
 
-    core.run({
-        socket.incoming().for_each(move |(connection, _addr)| {
-            handle.spawn({
-                let server = server.clone();
-                let lines = connection.framed(LinesCodec::new());
-                let (writer, reader) = lines.split();
+    let work = socket.incoming().for_each(move |(connection, _addr)| {
+        handle.spawn({
+            let server = server.clone();
+            let lines = connection.framed(LinesCodec::new());
+            let (writer, reader) = lines.split();
 
-                let version_stream = stream::once::<_, _>(Ok(version.to_owned()));
-                let reply_stream = reader.map(move |line| {
-                    match serde_json::from_str(&line) {
-                        Ok(r) => {
-                            serde_json::to_string(&server.borrow_mut().eval_request(r)).unwrap()
-                        },
-                        Err(e) => {
-                            serde_json::to_string(&Response::Error(format!("{}", e))).unwrap()
-                        }
+            let version_stream = stream::once::<_, _>(Ok(version.to_owned()));
+            let reply_stream = reader.map(move |line| {
+                match serde_json::from_str(&line) {
+                    Ok(r) => {
+                        serde_json::to_string(&server.borrow_mut().eval_request(r)).unwrap()
+                    },
+                    Err(e) => {
+                        serde_json::to_string(&Response::Error(format!("{}", e))).unwrap()
                     }
-                });
-
-                version_stream.chain(reply_stream).forward(writer).and_then(|_| Ok(())).map_err(|_| ())
+                }
             });
 
-            Ok(())
-        })
-        .map_err(|_| ())
-    });
+            version_stream.chain(reply_stream).forward(writer).and_then(|_| Ok(())).map_err(|_| ())
+        });
+
+        Ok(())
+    })
+    .map_err(|_| ());
+
+    core.run(work);
 }

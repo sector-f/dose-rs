@@ -13,6 +13,7 @@ pub enum Request {
 
 #[derive(Serialize, Deserialize)]
 pub enum Response {
+    Added(usize),
     DlStatus(DlResponse),
     ServerStatus(Vec<DlResponse>),
     Error(String),
