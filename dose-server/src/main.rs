@@ -79,7 +79,7 @@ fn main() {
                 }
             });
 
-            version_stream.chain(reply_stream).forward(writer).and_then(|_| Ok(())).map_err(|_| ())
+            version_stream.chain(reply_stream).forward(writer).map(|_| ()).map_err(|_| ())
         });
 
         Ok(())
