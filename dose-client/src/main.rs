@@ -25,7 +25,7 @@ fn main() {
              .takes_value(true))
         .subcommand(SubCommand::with_name("download")
                     .about("Adds a new file to be downloaded")
-                    .arg(Arg::with_name("URL")
+                    .arg(Arg::with_name("url")
                          .help("The file's URL")
                          .index(1)
                          .required(true)
