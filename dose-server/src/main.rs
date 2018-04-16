@@ -69,14 +69,16 @@ fn main() {
 
             let version_stream = stream::once::<_, _>(Ok(version.to_owned()));
             let reply_stream = reader.map(move |line| {
-                match serde_json::from_str(&line) {
+                let reply = match serde_json::from_str(&line) {
                     Ok(r) => {
                         serde_json::to_string(&server.borrow_mut().eval_request(r)).unwrap()
                     },
                     Err(e) => {
                         serde_json::to_string(&Response::Error(format!("{}", e))).unwrap()
                     }
-                }
+                };
+                println!("{:?}", reply);
+                reply
             });
 
             version_stream.chain(reply_stream).forward(writer).map(|_| ()).map_err(|_| ())

@@ -27,11 +27,12 @@ pub enum DlStatus {
     Failed,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize)]
 pub struct DlResponse {
-    pub id: usize,
     pub url: String,
     pub path: PathBuf,
+    pub status: DlStatus,
     pub bytes_read: u64,
     pub bytes_total: Option<u64>,
+    // time_elapsed
 }

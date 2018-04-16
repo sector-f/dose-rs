@@ -11,26 +11,29 @@ use dose_types::*;
 use std::io::{self, Read, Write};
 use std::net::Shutdown;
 use std::path::PathBuf;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 use std::thread::spawn;
 
-struct Dl {
+struct Download {
     url: Url,
     path: PathBuf,
     status: DlStatus,
     bytes_read: u64,
-    bytes_total: u64,
+    bytes_total: Option<u64>,
+    // time_elapsed
 }
 
 pub struct DlServer {
     handle: Handle,
-    downloads: Vec<Option<Dl>>,
+    downloads: Mutex<HashMap<PathBuf, Arc<Mutex<Download>>>>,
 }
 
 impl DlServer {
     pub fn new(h: Handle) -> Self {
         DlServer {
             handle: h,
-            downloads: Vec::new(),
+            downloads: Mutex::new(HashMap::new()),
         }
     }
 
