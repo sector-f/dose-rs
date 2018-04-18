@@ -5,17 +5,18 @@ use std::path::PathBuf;
 #[derive(Serialize, Deserialize)]
 pub enum Request {
     Add { url: String, path: PathBuf },
-    Cancel { id: usize },
-    Remove { id: usize },
-    DlStatus { id: usize },
-    ServerStatus,
+    Cancel { path: PathBuf },
+    Remove { path: PathBuf },
+    Info { path: PathBuf },
+    ServerInfo,
 }
 
 #[derive(Serialize, Deserialize)]
 pub enum Response {
-    Added(usize),
-    DlStatus(DlResponse),
-    ServerStatus(Vec<DlResponse>),
+    Added { path: PathBuf },
+    Canceled { path: PathBuf },
+    Info(DlResponse),
+    ServerInfo(Vec<DlResponse>),
     Error(String),
 }
 
