@@ -1,7 +1,9 @@
 extern crate serde;
 extern crate serde_json;
-extern crate reqwest;
 extern crate url;
+
+extern crate hyper;
+extern crate hyper_tls;
 
 extern crate tokio_core;
 use tokio_core::reactor::Core;
